@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/samualhalder/go-restapis/internals/config"
+	"github.com/samualhalder/go-restapis/internals/http/students"
 )
 
 func main() {
@@ -19,16 +20,14 @@ func main() {
 
 	router := http.NewServeMux()
 
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Welcome to go rest api"))
-	})
+	router.HandleFunc("POST /api/students", students.New())
 
 	server := http.Server{
 		Addr:    cfg.Addr,
 		Handler: router,
 	}
 
-	slog.Info("Server is started ", slog.String("at port", cfg.Addr))
+	slog.Info("Server is started at port:", slog.String("", cfg.Addr))
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)

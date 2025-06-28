@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/samualhalder/go-restapis/internals/types"
 	"github.com/samualhalder/go-restapis/internals/utils/response"
 )
@@ -22,6 +23,11 @@ func New() http.HandlerFunc {
 			response.ResponseWriter(w, http.StatusBadRequest, response.ErrorWriter(err))
 		}
 
-		response.ResponseWriter(w, http.StatusCreated, map[string]types.Student{"status": student})
+		if err := validator.New().Struct(student); err != nil {
+			validationError := err.(validator.ValidationErrors)
+			response.ResponseWriter(w, http.StatusBadRequest, response.ValidatorError(validationError))
+			return
+		}
+		response.ResponseWriter(w, http.StatusCreated, response.SuccessWriter(student, "Student created successfully"))
 	}
 }

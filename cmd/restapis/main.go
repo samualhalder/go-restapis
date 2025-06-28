@@ -11,12 +11,20 @@ import (
 	"time"
 
 	"github.com/samualhalder/go-restapis/internals/config"
+	"github.com/samualhalder/go-restapis/internals/database/sqlite"
+
 	"github.com/samualhalder/go-restapis/internals/http/students"
 )
 
 func main() {
 
 	cfg := config.MustLoad()
+
+	_, dberr := sqlite.New(cfg)
+	if dberr != nil {
+		log.Fatal(dberr)
+	}
+	slog.Info("Database conectead", slog.String("databate type: ", "sqlite"))
 
 	router := http.NewServeMux()
 

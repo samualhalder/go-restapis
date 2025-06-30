@@ -66,3 +66,62 @@ func (s *Sqlite) GetStudentById(id int64) (types.Student, error) {
 	}
 	return student, nil
 }
+
+func (s *Sqlite) GetStudentList() ([]types.Student, error) {
+	rows, err := s.Db.Query("SELECT id,name,email,age FROM students")
+	if err != nil {
+		return []types.Student{}, err
+	}
+	defer rows.Close()
+	var students []types.Student
+	for rows.Next() {
+		var student types.Student
+		err := rows.Scan(&student.Id, &student.Name, &student.Email, &student.Age)
+		if err != nil {
+			return []types.Student{}, err
+		}
+		students = append(students, student)
+	}
+	return students, nil
+}
+
+func (s *Sqlite) UpdateSutdent(id int64, name string, email string, age int) (bool, error) {
+	stmt, err := s.Db.Prepare("UPDATE students SET name=?,email=?,age=? WHERE id=?")
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+	result, err := stmt.Exec(name, email, age, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, fmt.Errorf("no student found for id %s", fmt.Sprint(id))
+		}
+		return false, fmt.Errorf("error %s", err.Error())
+	}
+	_, err = result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("error %s", err.Error())
+	}
+
+	return true, nil
+}
+func (s *Sqlite) DeleteSutdent(id int64) (bool, error) {
+	stmt, err := s.Db.Prepare("DELETE FROM students WHERE id=?")
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+	result, err := stmt.Exec(id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, fmt.Errorf("no student found for id %s", fmt.Sprint(id))
+		}
+		return false, fmt.Errorf("error %s", err.Error())
+	}
+	_, err = result.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("error %s", err.Error())
+	}
+
+	return true, nil
+}

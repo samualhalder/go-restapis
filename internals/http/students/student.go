@@ -55,3 +55,54 @@ func GetUserById(db database.Database) http.HandlerFunc {
 		response.ResponseWriter(w, http.StatusOK, response.SuccessWriter(student, ""))
 	}
 }
+
+func GetStudentList(db database.Database) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		studnets, err := db.GetStudentList()
+		if err != nil {
+			response.ResponseWriter(w, http.StatusBadRequest, response.ErrorWriter(err))
+			return
+		}
+		response.ResponseWriter(w, http.StatusOK, response.SuccessWriter(studnets, ""))
+	}
+}
+
+func UpdateStudnetById(db database.Database) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		id64, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			response.ResponseWriter(w, http.StatusBadRequest, response.ErrorWriter(err))
+			return
+		}
+		var student types.Student
+		err = json.NewDecoder(r.Body).Decode(&student)
+		if err != nil {
+			response.ResponseWriter(w, http.StatusBadRequest, response.ErrorWriter(err))
+			return
+		}
+		status, err := db.UpdateSutdent(id64, student.Name, student.Email, student.Age)
+		if err != nil {
+			response.ResponseWriter(w, http.StatusBadRequest, response.ErrorWriter(err))
+			return
+		}
+		response.ResponseWriter(w, http.StatusOK, response.SuccessWriter(status, "Student updated  successfully"))
+	}
+}
+func DeleteStudnetById(db database.Database) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		id64, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			response.ResponseWriter(w, http.StatusBadRequest, response.ErrorWriter(err))
+			return
+		}
+
+		status, err := db.DeleteSutdent(id64)
+		if err != nil {
+			response.ResponseWriter(w, http.StatusBadRequest, response.ErrorWriter(err))
+			return
+		}
+		response.ResponseWriter(w, http.StatusOK, response.SuccessWriter(status, "Student deleted  successfully"))
+	}
+}
